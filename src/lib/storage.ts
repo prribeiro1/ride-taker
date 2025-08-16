@@ -10,8 +10,8 @@ export interface Child {
   id: string;
   pointId: string;
   name: string;
-  responsible: string;
-  contact: string;
+  responsible?: string;
+  contact?: string;
   createdAt: Date;
 }
 
