@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wifi, WifiOff, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Wifi, WifiOff, Download, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export function PWAStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -22,12 +27,39 @@ export function PWAStatus() {
     
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
     
+    // Service Worker update detection
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                setUpdateAvailable(true);
+                setWaitingWorker(newWorker);
+                toast({
+                  title: "Atualização Disponível",
+                  description: "Uma nova versão do app está disponível. Clique para atualizar.",
+                  duration: 10000
+                });
+              }
+            });
+          }
+        });
+      });
+
+      // Listen for controller change (new SW took control)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    }
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
     };
-  }, []);
+  }, [toast]);
 
   const handleInstall = async () => {
     if (installPrompt) {
@@ -36,6 +68,14 @@ export function PWAStatus() {
       if (outcome === 'accepted') {
         setInstallPrompt(null);
       }
+    }
+  };
+
+  const handleUpdate = () => {
+    if (waitingWorker) {
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+      setUpdateAvailable(false);
+      setWaitingWorker(null);
     }
   };
 
@@ -50,17 +90,35 @@ export function PWAStatus() {
         {isOnline ? "Online" : "Offline"}
       </Badge>
       
+      {/* Update Available */}
+      {updateAvailable && (
+        <Card className="shadow-medium border-primary">
+          <CardContent className="p-3">
+            <Button
+              onClick={handleUpdate}
+              size="sm"
+              className="flex items-center gap-2 w-full bg-gradient-primary"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Atualizar App
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Install Button */}
-      {installPrompt && (
+      {installPrompt && !updateAvailable && (
         <Card className="shadow-medium">
           <CardContent className="p-3">
-            <button
+            <Button
               onClick={handleInstall}
-              className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-foreground hover:bg-primary px-2 py-1 rounded transition-smooth"
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2 w-full"
             >
               <Download className="h-4 w-4" />
               Instalar App
-            </button>
+            </Button>
           </CardContent>
         </Card>
       )}
