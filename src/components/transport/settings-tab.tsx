@@ -39,10 +39,10 @@ export function SettingsTab() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.responsible.trim() || !formData.pointId) {
+    if (!formData.name.trim() || !formData.pointId) {
       toast({
         title: "Erro",
-        description: "Todos os campos obrigatórios devem ser preenchidos",
+        description: "Nome da criança e ponto de embarque são obrigatórios",
         variant: "destructive"
       });
       return;
@@ -168,12 +168,12 @@ export function SettingsTab() {
               </div>
               
               <div>
-                <Label htmlFor="responsible">Responsável *</Label>
+                <Label htmlFor="responsible">Responsável</Label>
                 <Input
                   id="responsible"
                   value={formData.responsible}
                   onChange={(e) => setFormData(prev => ({ ...prev, responsible: e.target.value }))}
-                  placeholder="Ex: João Silva"
+                  placeholder="Ex: João Silva (opcional)"
                   className="mt-1"
                 />
               </div>
@@ -239,10 +239,12 @@ export function SettingsTab() {
                       {child.name}
                     </CardTitle>
                     <div className="space-y-1 mt-2 text-sm text-muted-foreground">
-                      <p className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Responsável: {child.responsible}
-                      </p>
+                      {child.responsible && (
+                        <p className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Responsável: {child.responsible}
+                        </p>
+                      )}
                       {child.contact && (
                         <p className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
