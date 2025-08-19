@@ -29,11 +29,28 @@ const STORAGE_KEYS = {
   ATTENDANCE: 'transport_attendance'
 } as const;
 
-// Generic storage functions
+// Generic storage functions with date handling
 export const getStorageData = <T>(key: string): T[] => {
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+    
+    const parsed = JSON.parse(data);
+    // Convert date strings back to Date objects for Points and Children
+    if (key === STORAGE_KEYS.POINTS || key === STORAGE_KEYS.CHILDREN) {
+      return parsed.map((item: any) => ({
+        ...item,
+        createdAt: new Date(item.createdAt)
+      }));
+    }
+    // Convert date strings back to Date objects for Attendance
+    if (key === STORAGE_KEYS.ATTENDANCE) {
+      return parsed.map((item: any) => ({
+        ...item,
+        timestamp: new Date(item.timestamp)
+      }));
+    }
+    return parsed;
   } catch (error) {
     console.error('Error reading from storage:', error);
     return [];
@@ -43,6 +60,7 @@ export const getStorageData = <T>(key: string): T[] => {
 export const setStorageData = <T>(key: string, data: T[]): void => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
+    console.log(`Saved ${data.length} items to ${key}`);
   } catch (error) {
     console.error('Error writing to storage:', error);
   }
@@ -150,6 +168,10 @@ export const markAttendance = (childId: string, present: boolean): void => {
   
   filtered.push(newAttendance);
   setStorageData(STORAGE_KEYS.ATTENDANCE, filtered);
+  
+  // Debug log for checking attendance saving
+  console.log(`Attendance marked for child ${childId} on ${today}: ${present ? 'present' : 'absent'}`);
+  console.log('Current attendance records:', filtered.filter(a => a.childId === childId));
 };
 
 // Monthly report data
