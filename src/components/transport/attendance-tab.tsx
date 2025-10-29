@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, Check, X } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Calendar, Users, Check, X, ChevronDown } from "lucide-react";
 import { 
   getChildren, 
   getPoints, 
@@ -21,6 +22,7 @@ export function AttendanceTab() {
   const [points, setPoints] = useState<Point[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<Attendance[]>([]);
+  const [openRoutes, setOpenRoutes] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const today = new Date().toLocaleDateString('pt-BR', {
@@ -37,8 +39,23 @@ export function AttendanceTab() {
   const loadData = () => {
     setChildren(getChildren());
     setPoints(getPoints());
-    setRoutes(getRoutes());
+    const loadedRoutes = getRoutes();
+    setRoutes(loadedRoutes);
     setTodayAttendance(getTodayAttendance());
+    // Open all routes by default on first load
+    setOpenRoutes(new Set(loadedRoutes.map(r => r.id)));
+  };
+
+  const toggleRoute = (routeId: string) => {
+    setOpenRoutes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(routeId)) {
+        newSet.delete(routeId);
+      } else {
+        newSet.add(routeId);
+      }
+      return newSet;
+    });
   };
 
   const handleAttendance = (childId: string, present: boolean) => {
@@ -137,18 +154,31 @@ export function AttendanceTab() {
       ) : (
         <div className="space-y-6">
           {dataByRoute.map(({ route, points: routePoints }) => (
-            <div key={route.id} className="space-y-3">
-              {/* Route Header */}
-              <div className="flex items-center gap-2 px-2">
-                <div className="h-px flex-1 bg-border" />
-                <h2 className="text-lg font-bold text-primary uppercase tracking-wide">
-                  {route.name}
-                </h2>
-                <div className="h-px flex-1 bg-border" />
-              </div>
+            <Collapsible
+              key={route.id}
+              open={openRoutes.has(route.id)}
+              onOpenChange={() => toggleRoute(route.id)}
+              className="space-y-3"
+            >
+              {/* Route Header - Clickable */}
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center gap-2 px-2 cursor-pointer hover:opacity-80 transition-opacity">
+                  <div className="h-px flex-1 bg-border" />
+                  <h2 className="text-lg font-bold text-primary uppercase tracking-wide flex items-center gap-2">
+                    {route.name}
+                    <ChevronDown 
+                      className={`h-5 w-5 transition-transform ${
+                        openRoutes.has(route.id) ? 'rotate-180' : ''
+                      }`} 
+                    />
+                  </h2>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              </CollapsibleTrigger>
 
               {/* Points in this Route */}
-              {routePoints.map(({ point, children: pointChildren }) => (
+              <CollapsibleContent className="space-y-3">
+                {routePoints.map(({ point, children: pointChildren }) => (
                 <Card key={point.id} className="shadow-soft">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
@@ -209,7 +239,8 @@ export function AttendanceTab() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
           ))}
         </div>
       )}
