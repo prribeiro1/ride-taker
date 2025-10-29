@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TabsNavigation } from "@/components/ui/tabs-navigation";
+import { RoutesTab } from "@/components/transport/routes-tab";
 import { PointsTab } from "@/components/transport/points-tab";
 import { AttendanceTab } from "@/components/transport/attendance-tab";
 import { ReportsTab } from "@/components/transport/reports-tab";
@@ -7,10 +8,12 @@ import { SettingsTab } from "@/components/transport/settings-tab";
 import { PWAStatus } from "@/components/ui/pwa-status";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("points");
+  const [activeTab, setActiveTab] = useState("routes");
 
   const renderActiveTab = () => {
     switch (activeTab) {
+      case "routes":
+        return <RoutesTab />;
       case "points":
         return <PointsTab />;
       case "attendance":
@@ -20,7 +23,7 @@ const Index = () => {
       case "settings":
         return <SettingsTab />;
       default:
-        return <PointsTab />;
+        return <RoutesTab />;
     }
   };
 

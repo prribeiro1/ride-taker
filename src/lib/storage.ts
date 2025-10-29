@@ -1,6 +1,14 @@
 // Local storage utilities for offline-first PWA
+export interface Route {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: Date;
+}
+
 export interface Point {
   id: string;
+  routeId: string;
   name: string;
   address?: string;
   createdAt: Date;
@@ -24,6 +32,7 @@ export interface Attendance {
 }
 
 const STORAGE_KEYS = {
+  ROUTES: 'transport_routes',
   POINTS: 'transport_points',
   CHILDREN: 'transport_children',
   ATTENDANCE: 'transport_attendance'
@@ -36,8 +45,8 @@ export const getStorageData = <T>(key: string): T[] => {
     if (!data) return [];
     
     const parsed = JSON.parse(data);
-    // Convert date strings back to Date objects for Points and Children
-    if (key === STORAGE_KEYS.POINTS || key === STORAGE_KEYS.CHILDREN) {
+    // Convert date strings back to Date objects for Routes, Points and Children
+    if (key === STORAGE_KEYS.ROUTES || key === STORAGE_KEYS.POINTS || key === STORAGE_KEYS.CHILDREN) {
       return parsed.map((item: any) => ({
         ...item,
         createdAt: new Date(item.createdAt)
@@ -66,8 +75,49 @@ export const setStorageData = <T>(key: string, data: T[]): void => {
   }
 };
 
+// Routes management
+export const getRoutes = (): Route[] => getStorageData<Route>(STORAGE_KEYS.ROUTES);
+
+export const addRoute = (route: Omit<Route, 'id' | 'createdAt'>): Route => {
+  const newRoute: Route = {
+    ...route,
+    id: crypto.randomUUID(),
+    createdAt: new Date()
+  };
+  
+  const routes = getRoutes();
+  routes.push(newRoute);
+  setStorageData(STORAGE_KEYS.ROUTES, routes);
+  
+  return newRoute;
+};
+
+export const updateRoute = (id: string, updates: Partial<Route>): void => {
+  const routes = getRoutes();
+  const index = routes.findIndex(r => r.id === id);
+  if (index !== -1) {
+    routes[index] = { ...routes[index], ...updates };
+    setStorageData(STORAGE_KEYS.ROUTES, routes);
+  }
+};
+
+export const deleteRoute = (id: string): void => {
+  const routes = getRoutes().filter(r => r.id !== id);
+  setStorageData(STORAGE_KEYS.ROUTES, routes);
+  
+  // Also delete points and children associated with this route
+  const pointIds = getPoints().filter(p => p.routeId === id).map(p => p.id);
+  const points = getPoints().filter(p => p.routeId !== id);
+  setStorageData(STORAGE_KEYS.POINTS, points);
+  const children = getChildren().filter(c => !pointIds.includes(c.pointId));
+  setStorageData(STORAGE_KEYS.CHILDREN, children);
+};
+
 // Points management
 export const getPoints = (): Point[] => getStorageData<Point>(STORAGE_KEYS.POINTS);
+
+export const getPointsByRoute = (routeId: string): Point[] => 
+  getPoints().filter(p => p.routeId === routeId);
 
 export const addPoint = (point: Omit<Point, 'id' | 'createdAt'>): Point => {
   const newPoint: Point = {

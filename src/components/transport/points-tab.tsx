@@ -4,28 +4,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, MapPin, Edit, Trash2 } from "lucide-react";
-import { addPoint, getPoints, updatePoint, deletePoint, type Point } from "@/lib/storage";
+import { addPoint, getPoints, updatePoint, deletePoint, getRoutes, type Point, type Route } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 export function PointsTab() {
   const [points, setPoints] = useState<Point[]>(getPoints());
+  const [routes, setRoutes] = useState<Route[]>(getRoutes());
   const [editingPoint, setEditingPoint] = useState<Point | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
+    routeId: "",
     name: "",
     address: ""
   });
 
   const resetForm = () => {
-    setFormData({ name: "", address: "" });
+    setFormData({ routeId: "", name: "", address: "" });
     setEditingPoint(null);
+  };
+
+  const getRouteName = (routeId: string) => {
+    const route = routes.find(r => r.id === routeId);
+    return route?.name || "Rota desconhecida";
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.routeId) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma rota",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (!formData.name.trim()) {
       toast({
@@ -66,6 +83,7 @@ export function PointsTab() {
   const handleEdit = (point: Point) => {
     setEditingPoint(point);
     setFormData({
+      routeId: point.routeId,
       name: point.name,
       address: point.address || ""
     });
@@ -115,6 +133,29 @@ export function PointsTab() {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="routeId">Rota *</Label>
+                <Select
+                  value={formData.routeId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, routeId: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione uma rota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {routes.length === 0 ? (
+                      <SelectItem value="none" disabled>Nenhuma rota cadastrada</SelectItem>
+                    ) : (
+                      routes.map((route) => (
+                        <SelectItem key={route.id} value={route.id}>
+                          {route.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              
               <div>
                 <Label htmlFor="name">Nome do Ponto *</Label>
                 <Input
@@ -172,6 +213,9 @@ export function PointsTab() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {getRouteName(point.routeId)}
+                    </div>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-primary" />
                       {point.name}

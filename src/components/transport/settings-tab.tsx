@@ -9,10 +9,12 @@ import {
   addChild, 
   getChildren, 
   getPoints, 
+  getRoutes,
   updateChild, 
   deleteChild,
   type Child,
-  type Point 
+  type Point,
+  type Route
 } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export function SettingsTab() {
   const [children, setChildren] = useState<Child[]>(getChildren());
   const [points, setPoints] = useState<Point[]>(getPoints());
+  const [routes, setRoutes] = useState<Route[]>(getRoutes());
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -110,6 +113,18 @@ export function SettingsTab() {
     return point?.name || "Ponto não encontrado";
   };
 
+  const getRouteName = (pointId: string): string => {
+    const point = points.find(p => p.id === pointId);
+    if (!point) return "Rota desconhecida";
+    const route = routes.find(r => r.id === point.routeId);
+    return route?.name || "Rota desconhecida";
+  };
+
+  const groupedPoints = routes.map(route => ({
+    route,
+    points: points.filter(p => p.routeId === route.id)
+  }));
+
   return (
     <div className="p-4 pb-20 space-y-4">
       <div className="flex items-center justify-between">
@@ -158,11 +173,24 @@ export function SettingsTab() {
                     <SelectValue placeholder="Selecione um ponto" />
                   </SelectTrigger>
                   <SelectContent>
-                    {points.map((point) => (
-                      <SelectItem key={point.id} value={point.id}>
-                        {point.name}
-                      </SelectItem>
-                    ))}
+                    {points.length === 0 ? (
+                      <SelectItem value="none" disabled>Nenhum ponto cadastrado</SelectItem>
+                    ) : (
+                      groupedPoints.map(({ route, points: routePoints }) => (
+                        routePoints.length > 0 && (
+                          <div key={route.id}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                              {route.name}
+                            </div>
+                            {routePoints.map((point) => (
+                              <SelectItem key={point.id} value={point.id} className="pl-6">
+                                {point.name}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        )
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -239,6 +267,9 @@ export function SettingsTab() {
                       {child.name}
                     </CardTitle>
                     <div className="space-y-1 mt-2 text-sm text-muted-foreground">
+                      <p className="text-xs">
+                        {getRouteName(child.pointId)} → {getPointName(child.pointId)}
+                      </p>
                       {child.responsible && (
                         <p className="flex items-center gap-2">
                           <User className="h-4 w-4" />
@@ -251,9 +282,6 @@ export function SettingsTab() {
                           {child.contact}
                         </p>
                       )}
-                      <p className="font-medium text-foreground">
-                        Ponto: {getPointName(child.pointId)}
-                      </p>
                     </div>
                   </div>
                   

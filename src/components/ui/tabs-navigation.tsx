@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { MapPin, Users, Calendar, Settings } from "lucide-react";
+import { MapPin, Users, Calendar, Settings, Route } from "lucide-react";
 
 interface Tab {
   id: string;
@@ -8,6 +8,7 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
+  { id: "routes", label: "Rotas", icon: Route },
   { id: "points", label: "Pontos", icon: MapPin },
   { id: "attendance", label: "Chamada", icon: Calendar },
   { id: "reports", label: "Relatórios", icon: Users },
