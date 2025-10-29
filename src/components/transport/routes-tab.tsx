@@ -8,7 +8,7 @@ import { Plus, Edit, Trash2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addRoute, getRoutes, updateRoute, deleteRoute, type Route } from "@/lib/storage";
 
-export const RoutesTab = () => {
+export function RoutesTab() {
   const [routes, setRoutes] = useState<Route[]>(getRoutes());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
@@ -161,4 +161,4 @@ export const RoutesTab = () => {
       </div>
     </div>
   );
-};
+}
