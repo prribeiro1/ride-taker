@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transport-monitor-v6';
+const CACHE_NAME = 'transport-monitor-v7-routes';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -17,7 +17,7 @@ const ASSETS_TO_CACHE = [
 
 // Install event - cache essential resources
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log('Service Worker installing... v7-routes');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -25,7 +25,7 @@ self.addEventListener('install', (event) => {
         return cache.addAll(ASSETS_TO_CACHE);
       })
       .then(() => {
-        console.log('Skip waiting...');
+        console.log('Skip waiting - force activation...');
         return self.skipWaiting();
       })
   );
@@ -33,7 +33,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches and take control
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
+  console.log('Service Worker activating... v7-routes');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
@@ -47,8 +47,17 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('Claiming clients...');
+        console.log('Claiming all clients - forcing refresh...');
         return self.clients.claim();
+      })
+      .then(() => {
+        // Force refresh all clients
+        return self.clients.matchAll({ type: 'window' }).then(clients => {
+          clients.forEach(client => {
+            console.log('Notifying client to reload:', client.url);
+            client.postMessage({ type: 'RELOAD' });
+          });
+        });
       })
   );
 });
