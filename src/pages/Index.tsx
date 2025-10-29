@@ -6,6 +6,7 @@ import { AttendanceTab } from "@/components/transport/attendance-tab";
 import { ReportsTab } from "@/components/transport/reports-tab";
 import { SettingsTab } from "@/components/transport/settings-tab";
 import { PWAStatus } from "@/components/ui/pwa-status";
+import { PWAUpdatePrompt } from "@/components/pwa-update-prompt";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("routes");
@@ -30,6 +31,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-soft">
       <PWAStatus />
+      <PWAUpdatePrompt />
       
       <main className="min-h-screen">
         {renderActiveTab()}
