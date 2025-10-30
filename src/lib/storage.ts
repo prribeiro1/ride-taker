@@ -133,6 +133,20 @@ export const addPoint = (point: Omit<Point, 'id' | 'createdAt'>): Point => {
   return newPoint;
 };
 
+export const addMultiplePoints = (pointsData: Omit<Point, 'id' | 'createdAt'>[]): Point[] => {
+  const newPoints: Point[] = pointsData.map(point => ({
+    ...point,
+    id: crypto.randomUUID(),
+    createdAt: new Date()
+  }));
+  
+  const points = getPoints();
+  points.push(...newPoints);
+  setStorageData(STORAGE_KEYS.POINTS, points);
+  
+  return newPoints;
+};
+
 export const updatePoint = (id: string, updates: Partial<Point>): void => {
   const points = getPoints();
   const index = points.findIndex(p => p.id === id);

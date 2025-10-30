@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, MapPin, Edit, Trash2 } from "lucide-react";
-import { addPoint, getPoints, updatePoint, deletePoint, getRoutes, type Point, type Route } from "@/lib/storage";
+import { Textarea } from "@/components/ui/textarea";
+import { addPoint, addMultiplePoints, getPoints, updatePoint, deletePoint, getRoutes, type Point, type Route } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 export function PointsTab() {
@@ -18,12 +19,12 @@ export function PointsTab() {
 
   const [formData, setFormData] = useState({
     routeId: "",
-    name: "",
+    names: "",
     address: ""
   });
 
   const resetForm = () => {
-    setFormData({ routeId: "", name: "", address: "" });
+    setFormData({ routeId: "", names: "", address: "" });
     setEditingPoint(null);
   };
 
@@ -44,7 +45,7 @@ export function PointsTab() {
       return;
     }
     
-    if (!formData.name.trim()) {
+    if (!formData.names.trim()) {
       toast({
         title: "Erro",
         description: "Nome do ponto é obrigatório",
@@ -55,16 +56,32 @@ export function PointsTab() {
 
     try {
       if (editingPoint) {
-        updatePoint(editingPoint.id, formData);
+        updatePoint(editingPoint.id, { name: formData.names, address: formData.address, routeId: formData.routeId });
         toast({
           title: "Sucesso",
           description: "Ponto atualizado com sucesso"
         });
       } else {
-        addPoint(formData);
+        // Parse multiple names
+        const names = formData.names
+          .split(/[,\n]+/)
+          .map(name => name.trim())
+          .filter(name => name.length > 0);
+        
+        if (names.length === 1) {
+          addPoint({ routeId: formData.routeId, name: names[0], address: formData.address });
+        } else {
+          const pointsData = names.map(name => ({
+            routeId: formData.routeId,
+            name,
+            address: formData.address
+          }));
+          addMultiplePoints(pointsData);
+        }
+        
         toast({
           title: "Sucesso", 
-          description: "Ponto cadastrado com sucesso"
+          description: `${names.length} ponto(s) cadastrado(s) com sucesso`
         });
       }
       
@@ -84,7 +101,7 @@ export function PointsTab() {
     setEditingPoint(point);
     setFormData({
       routeId: point.routeId,
-      name: point.name,
+      names: point.name,
       address: point.address || ""
     });
     setDialogOpen(true);
@@ -157,18 +174,32 @@ export function PointsTab() {
               </div>
               
               <div>
-                <Label htmlFor="name">Nome do Ponto *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ex: Escola Municipal João Silva"
-                  className="mt-1"
-                />
+                <Label htmlFor="names">
+                  {editingPoint ? "Nome do Ponto *" : "Nome(s) do(s) Ponto(s) *"}
+                </Label>
+                {editingPoint ? (
+                  <Input
+                    id="names"
+                    value={formData.names}
+                    onChange={(e) => setFormData(prev => ({ ...prev, names: e.target.value }))}
+                    placeholder="Ex: Escola Municipal João Silva"
+                    className="mt-1"
+                  />
+                ) : (
+                  <Textarea
+                    id="names"
+                    value={formData.names}
+                    onChange={(e) => setFormData(prev => ({ ...prev, names: e.target.value }))}
+                    placeholder="Ex: Praça Central, Escola Municipal, Terminal Rodoviário (separar por vírgula ou quebra de linha)"
+                    className="mt-1 min-h-[80px]"
+                  />
+                )}
               </div>
               
               <div>
-                <Label htmlFor="address">Endereço (opcional)</Label>
+                <Label htmlFor="address">
+                  Endereço (opcional){!editingPoint && " - compartilhado para múltiplos pontos"}
+                </Label>
                 <Input
                   id="address"
                   value={formData.address}
