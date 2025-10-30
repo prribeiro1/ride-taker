@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transport-monitor-v7-routes';
+const CACHE_NAME = 'transport-monitor-v8-offline';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

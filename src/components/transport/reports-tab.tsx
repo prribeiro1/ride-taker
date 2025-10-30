@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileDown, BarChart3, Calendar, CheckCircle, XCircle, Eye, EyeOff } from "lucide-react";
-import { getMonthlyReport, getAttendance, getChildren } from "@/lib/storage";
+import { FileDown, BarChart3, Calendar, CheckCircle, XCircle, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { getMonthlyReport, getAttendance, getChildren, getRoutes, getPoints, type Route, type Point } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 export function ReportsTab() {
@@ -12,7 +13,11 @@ export function ReportsTab() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [showDetails, setShowDetails] = useState<string | null>(null);
+  const [openRoutes, setOpenRoutes] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+
+  const routes = getRoutes();
+  const points = getPoints();
 
   const monthNames = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -20,6 +25,35 @@ export function ReportsTab() {
   ];
 
   const reportData = getMonthlyReport(selectedYear, selectedMonth);
+
+  const toggleRoute = (routeId: string) => {
+    setOpenRoutes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(routeId)) {
+        newSet.delete(routeId);
+      } else {
+        newSet.add(routeId);
+      }
+      return newSet;
+    });
+  };
+
+  // Group data by Route > Point > Children
+  const dataByRoute = routes.map(route => {
+    const routePoints = points.filter(p => p.routeId === route.id);
+    const pointsWithChildren = routePoints.map(point => {
+      const pointChildren = reportData.filter(r => r.child.pointId === point.id);
+      return {
+        point,
+        children: pointChildren
+      };
+    }).filter(p => p.children.length > 0);
+    
+    return {
+      route,
+      points: pointsWithChildren
+    };
+  }).filter(r => r.points.length > 0);
 
   // Get detailed attendance for calendar view
   const getDetailedAttendance = (childId: string) => {
@@ -207,95 +241,136 @@ export function ReportsTab() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {reportData.map((item) => (
-                <Card key={item.child.id} className="shadow-soft">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-lg">{item.child.name}</h4>
-                        {item.child.responsible && (
-                          <p className="text-sm text-muted-foreground">
-                            Responsável: {item.child.responsible}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="text-center">
-                            <div className="font-bold text-success text-lg">{item.present}</div>
-                            <div className="text-xs text-muted-foreground">Presente</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-bold text-destructive text-lg">{item.absent}</div>
-                            <div className="text-xs text-muted-foreground">Falta</div>
-                          </div>
-                        </div>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowDetails(showDetails === item.child.id ? null : item.child.id)}
-                          className="h-8 w-8 p-0"
-                        >
-                          {showDetails === item.child.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
+            <div className="space-y-6">
+              {dataByRoute.map(({ route, points: routePoints }) => (
+                <Collapsible
+                  key={route.id}
+                  open={openRoutes.has(route.id)}
+                  onOpenChange={() => toggleRoute(route.id)}
+                  className="space-y-3"
+                >
+                  {/* Route Header - Clickable */}
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-2 px-2 cursor-pointer hover:opacity-80 transition-opacity">
+                      <div className="h-px flex-1 bg-border" />
+                      <h2 className="text-lg font-bold text-primary uppercase tracking-wide flex items-center gap-2">
+                        {route.name}
+                        <ChevronDown 
+                          className={`h-5 w-5 transition-transform ${
+                            openRoutes.has(route.id) ? 'rotate-180' : ''
+                          }`} 
+                        />
+                      </h2>
+                      <div className="h-px flex-1 bg-border" />
                     </div>
-                    
-                    {/* Detailed calendar view */}
-                    {showDetails === item.child.id && (
-                      <div className="mt-4 pt-4 border-t">
-                        <h5 className="font-medium text-sm mb-3 text-muted-foreground">
-                          Detalhes do mês - Dias da semana (Segunda a Sexta)
-                        </h5>
-                        <div className="grid grid-cols-5 gap-2">
-                          {getDetailedAttendance(item.child.id).map((day) => (
-                            <div
-                              key={day.date}
-                              className={`
-                                p-2 rounded-lg text-center text-xs border
-                                ${!day.hasRecord 
-                                  ? 'bg-muted border-muted text-muted-foreground' 
-                                  : day.present 
-                                    ? 'bg-success/10 border-success text-success' 
-                                    : 'bg-destructive/10 border-destructive text-destructive'
-                                }
-                              `}
-                            >
-                              <div className="font-medium">{day.day}</div>
-                              <div className="text-xs opacity-70">{day.dayOfWeek}</div>
-                              <div className="mt-1">
-                                {!day.hasRecord ? (
-                                  <div className="w-3 h-3 rounded-full bg-muted-foreground/30 mx-auto"></div>
-                                ) : day.present ? (
-                                  <CheckCircle className="w-3 h-3 mx-auto" />
-                                ) : (
-                                  <XCircle className="w-3 h-3 mx-auto" />
-                                )}
+                  </CollapsibleTrigger>
+
+                  {/* Points in this Route */}
+                  <CollapsibleContent className="space-y-3">
+                    {routePoints.map(({ point, children: pointChildren }) => (
+                      <div key={point.id} className="space-y-2">
+                        <div className="px-3 py-2 bg-accent/50 rounded-lg">
+                          <h3 className="font-semibold text-sm flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-primary" />
+                            {point.name}
+                            <Badge variant="secondary" className="ml-auto">
+                              {pointChildren.length} {pointChildren.length === 1 ? 'criança' : 'crianças'}
+                            </Badge>
+                          </h3>
+                        </div>
+                        {pointChildren.map((item) => (
+                          <Card key={item.child.id} className="shadow-soft">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-lg">{item.child.name}</h4>
+                                  {item.child.responsible && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Responsável: {item.child.responsible}
+                                    </p>
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-4 text-sm">
+                                    <div className="text-center">
+                                      <div className="font-bold text-success text-lg">{item.present}</div>
+                                      <div className="text-xs text-muted-foreground">Presente</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="font-bold text-destructive text-lg">{item.absent}</div>
+                                      <div className="text-xs text-muted-foreground">Falta</div>
+                                    </div>
+                                  </div>
+                                  
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowDetails(showDetails === item.child.id ? null : item.child.id)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    {showDetails === item.child.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3 text-success" />
-                            Presente
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <XCircle className="w-3 h-3 text-destructive" />
-                            Falta
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
-                            Sem registro
-                          </div>
-                        </div>
+                              
+                              {/* Detailed calendar view */}
+                              {showDetails === item.child.id && (
+                                <div className="mt-4 pt-4 border-t">
+                                  <h5 className="font-medium text-sm mb-3 text-muted-foreground">
+                                    Detalhes do mês - Dias da semana (Segunda a Sexta)
+                                  </h5>
+                                  <div className="grid grid-cols-5 gap-2">
+                                    {getDetailedAttendance(item.child.id).map((day) => (
+                                      <div
+                                        key={day.date}
+                                        className={`
+                                          p-2 rounded-lg text-center text-xs border
+                                          ${!day.hasRecord 
+                                            ? 'bg-muted border-muted text-muted-foreground' 
+                                            : day.present 
+                                              ? 'bg-success/10 border-success text-success' 
+                                              : 'bg-destructive/10 border-destructive text-destructive'
+                                          }
+                                        `}
+                                      >
+                                        <div className="font-medium">{day.day}</div>
+                                        <div className="text-xs opacity-70">{day.dayOfWeek}</div>
+                                        <div className="mt-1">
+                                          {!day.hasRecord ? (
+                                            <div className="w-3 h-3 rounded-full bg-muted-foreground/30 mx-auto"></div>
+                                          ) : day.present ? (
+                                            <CheckCircle className="w-3 h-3 mx-auto" />
+                                          ) : (
+                                            <XCircle className="w-3 h-3 mx-auto" />
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <CheckCircle className="w-3 h-3 text-success" />
+                                      Presente
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <XCircle className="w-3 h-3 text-destructive" />
+                                      Falta
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
+                                      Sem registro
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
               ))}
             </div>
           )}

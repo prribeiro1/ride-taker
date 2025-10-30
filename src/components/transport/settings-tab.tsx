@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, User, Edit, Trash2, Phone } from "lucide-react";
 import { 
-  addChild, 
+  addChild,
+  addMultipleChildren,
   getChildren, 
   getPoints, 
   getRoutes,
@@ -28,24 +29,24 @@ export function SettingsTab() {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: "",
+    names: "",
     responsible: "",
     contact: "",
     pointId: ""
   });
 
   const resetForm = () => {
-    setFormData({ name: "", responsible: "", contact: "", pointId: "" });
+    setFormData({ names: "", responsible: "", contact: "", pointId: "" });
     setEditingChild(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.pointId) {
+    if (!formData.names.trim() || !formData.pointId) {
       toast({
         title: "Erro",
-        description: "Nome da criança e ponto de embarque são obrigatórios",
+        description: "Nome(s) da(s) criança(s) e ponto de embarque são obrigatórios",
         variant: "destructive"
       });
       return;
@@ -53,17 +54,47 @@ export function SettingsTab() {
 
     try {
       if (editingChild) {
-        updateChild(editingChild.id, formData);
+        updateChild(editingChild.id, { 
+          name: formData.names, 
+          responsible: formData.responsible, 
+          contact: formData.contact, 
+          pointId: formData.pointId 
+        });
         toast({
           title: "Sucesso",
           description: "Criança atualizada com sucesso"
         });
       } else {
-        addChild(formData);
-        toast({
-          title: "Sucesso",
-          description: "Criança cadastrada com sucesso"
-        });
+        // Split names by comma or line break and create multiple children
+        const names = formData.names
+          .split(/[,\n]/)
+          .map(n => n.trim())
+          .filter(n => n.length > 0);
+        
+        if (names.length === 1) {
+          addChild({ 
+            name: names[0], 
+            responsible: formData.responsible, 
+            contact: formData.contact, 
+            pointId: formData.pointId 
+          });
+          toast({
+            title: "Sucesso",
+            description: "Criança cadastrada com sucesso"
+          });
+        } else {
+          const childrenToAdd = names.map(name => ({
+            name,
+            responsible: formData.responsible,
+            contact: formData.contact,
+            pointId: formData.pointId
+          }));
+          addMultipleChildren(childrenToAdd);
+          toast({
+            title: "Sucesso",
+            description: `${names.length} crianças cadastradas com sucesso`
+          });
+        }
       }
       
       setChildren(getChildren());
@@ -72,7 +103,7 @@ export function SettingsTab() {
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao salvar criança",
+        description: "Erro ao salvar criança(s)",
         variant: "destructive"
       });
     }
@@ -81,9 +112,9 @@ export function SettingsTab() {
   const handleEdit = (child: Child) => {
     setEditingChild(child);
     setFormData({
-      name: child.name,
-      responsible: child.responsible,
-      contact: child.contact,
+      names: child.name,
+      responsible: child.responsible || "",
+      contact: child.contact || "",
       pointId: child.pointId
     });
     setDialogOpen(true);
@@ -153,14 +184,32 @@ export function SettingsTab() {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nome da Criança *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ex: Maria Silva"
-                  className="mt-1"
-                />
+                <Label htmlFor="names">
+                  {editingChild ? "Nome da Criança *" : "Nome(s) da(s) Criança(s) *"}
+                </Label>
+                {editingChild ? (
+                  <Input
+                    id="names"
+                    value={formData.names}
+                    onChange={(e) => setFormData(prev => ({ ...prev, names: e.target.value }))}
+                    placeholder="Ex: Maria Silva"
+                    className="mt-1"
+                  />
+                ) : (
+                  <>
+                    <textarea
+                      id="names"
+                      value={formData.names}
+                      onChange={(e) => setFormData(prev => ({ ...prev, names: e.target.value }))}
+                      placeholder="Ex: Maria Silva, João Silva, Ana Costa&#10;Ou uma por linha"
+                      className="mt-1 w-full min-h-[80px] px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Separe múltiplos nomes por vírgula ou quebra de linha
+                    </p>
+                  </>
+                )}
               </div>
 
               <div>
@@ -196,7 +245,9 @@ export function SettingsTab() {
               </div>
               
               <div>
-                <Label htmlFor="responsible">Responsável</Label>
+                <Label htmlFor="responsible">
+                  Responsável {!editingChild && "(compartilhado para todas)"}
+                </Label>
                 <Input
                   id="responsible"
                   value={formData.responsible}
@@ -207,7 +258,9 @@ export function SettingsTab() {
               </div>
               
               <div>
-                <Label htmlFor="contact">Telefone de Contato</Label>
+                <Label htmlFor="contact">
+                  Telefone de Contato {!editingChild && "(compartilhado para todas)"}
+                </Label>
                 <Input
                   id="contact"
                   value={formData.contact}

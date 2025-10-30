@@ -171,6 +171,20 @@ export const addChild = (child: Omit<Child, 'id' | 'createdAt'>): Child => {
   return newChild;
 };
 
+export const addMultipleChildren = (childrenData: Omit<Child, 'id' | 'createdAt'>[]): Child[] => {
+  const newChildren: Child[] = childrenData.map(child => ({
+    ...child,
+    id: crypto.randomUUID(),
+    createdAt: new Date()
+  }));
+  
+  const children = getChildren();
+  children.push(...newChildren);
+  setStorageData(STORAGE_KEYS.CHILDREN, children);
+  
+  return newChildren;
+};
+
 export const updateChild = (id: string, updates: Partial<Child>): void => {
   const children = getChildren();
   const index = children.findIndex(c => c.id === id);

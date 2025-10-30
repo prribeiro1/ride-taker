@@ -160,12 +160,27 @@ export function AttendanceTab() {
               onOpenChange={() => toggleRoute(route.id)}
               className="space-y-3"
             >
-              {/* Route Header - Clickable */}
+              {/* Route Header - Clickable with counters */}
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center gap-2 px-2 cursor-pointer hover:opacity-80 transition-opacity">
                   <div className="h-px flex-1 bg-border" />
                   <h2 className="text-lg font-bold text-primary uppercase tracking-wide flex items-center gap-2">
                     {route.name}
+                    {(() => {
+                      const routeChildrenIds = routePoints.flatMap(p => p.children.map(c => c.id));
+                      const routePresent = todayAttendance.filter(a => 
+                        routeChildrenIds.includes(a.childId) && a.present
+                      ).length;
+                      const routeAbsent = todayAttendance.filter(a => 
+                        routeChildrenIds.includes(a.childId) && !a.present
+                      ).length;
+                      return (
+                        <span className="text-sm font-normal">
+                          (<span className="text-success">{routePresent}</span>/
+                          <span className="text-destructive">{routeAbsent}</span>)
+                        </span>
+                      );
+                    })()}
                     <ChevronDown 
                       className={`h-5 w-5 transition-transform ${
                         openRoutes.has(route.id) ? 'rotate-180' : ''
