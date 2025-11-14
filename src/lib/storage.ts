@@ -89,6 +89,18 @@ export const addRoute = (route: Omit<Route, 'id' | 'createdAt'>): Route => {
   routes.push(newRoute);
   setStorageData(STORAGE_KEYS.ROUTES, routes);
   
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'insert',
+        table: 'routes',
+        data: newRoute,
+        localId: newRoute.id
+      });
+    });
+  }
+  
   return newRoute;
 };
 
@@ -98,6 +110,18 @@ export const updateRoute = (id: string, updates: Partial<Route>): void => {
   if (index !== -1) {
     routes[index] = { ...routes[index], ...updates };
     setStorageData(STORAGE_KEYS.ROUTES, routes);
+    
+    // Add to sync queue
+    if (typeof window !== 'undefined') {
+      import('./sync-service').then(({ addToSyncQueue }) => {
+        addToSyncQueue({
+          type: 'update',
+          table: 'routes',
+          data: routes[index],
+          localId: id
+        });
+      });
+    }
   }
 };
 
@@ -111,6 +135,27 @@ export const deleteRoute = (id: string): void => {
   setStorageData(STORAGE_KEYS.POINTS, points);
   const children = getChildren().filter(c => !pointIds.includes(c.pointId));
   setStorageData(STORAGE_KEYS.CHILDREN, children);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'delete',
+        table: 'routes',
+        data: { id },
+        localId: id
+      });
+      // Also queue deletion of associated points and children
+      pointIds.forEach(pointId => {
+        addToSyncQueue({
+          type: 'delete',
+          table: 'points',
+          data: { id: pointId },
+          localId: pointId
+        });
+      });
+    });
+  }
 };
 
 // Points management
@@ -129,6 +174,18 @@ export const addPoint = (point: Omit<Point, 'id' | 'createdAt'>): Point => {
   const points = getPoints();
   points.push(newPoint);
   setStorageData(STORAGE_KEYS.POINTS, points);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'insert',
+        table: 'points',
+        data: newPoint,
+        localId: newPoint.id
+      });
+    });
+  }
   
   return newPoint;
 };
@@ -153,6 +210,18 @@ export const updatePoint = (id: string, updates: Partial<Point>): void => {
   if (index !== -1) {
     points[index] = { ...points[index], ...updates };
     setStorageData(STORAGE_KEYS.POINTS, points);
+    
+    // Add to sync queue
+    if (typeof window !== 'undefined') {
+      import('./sync-service').then(({ addToSyncQueue }) => {
+        addToSyncQueue({
+          type: 'update',
+          table: 'points',
+          data: points[index],
+          localId: id
+        });
+      });
+    }
   }
 };
 
@@ -161,8 +230,30 @@ export const deletePoint = (id: string): void => {
   setStorageData(STORAGE_KEYS.POINTS, points);
   
   // Also delete associated children
+  const childIds = getChildren().filter(c => c.pointId === id).map(c => c.id);
   const children = getChildren().filter(c => c.pointId !== id);
   setStorageData(STORAGE_KEYS.CHILDREN, children);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'delete',
+        table: 'points',
+        data: { id },
+        localId: id
+      });
+      // Also queue deletion of associated children
+      childIds.forEach(childId => {
+        addToSyncQueue({
+          type: 'delete',
+          table: 'children',
+          data: { id: childId },
+          localId: childId
+        });
+      });
+    });
+  }
 };
 
 // Children management
@@ -181,6 +272,18 @@ export const addChild = (child: Omit<Child, 'id' | 'createdAt'>): Child => {
   const children = getChildren();
   children.push(newChild);
   setStorageData(STORAGE_KEYS.CHILDREN, children);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'insert',
+        table: 'children',
+        data: newChild,
+        localId: newChild.id
+      });
+    });
+  }
   
   return newChild;
 };
@@ -205,6 +308,18 @@ export const updateChild = (id: string, updates: Partial<Child>): void => {
   if (index !== -1) {
     children[index] = { ...children[index], ...updates };
     setStorageData(STORAGE_KEYS.CHILDREN, children);
+    
+    // Add to sync queue
+    if (typeof window !== 'undefined') {
+      import('./sync-service').then(({ addToSyncQueue }) => {
+        addToSyncQueue({
+          type: 'update',
+          table: 'children',
+          data: children[index],
+          localId: id
+        });
+      });
+    }
   }
 };
 
@@ -215,6 +330,18 @@ export const deleteChild = (id: string): void => {
   // Also delete associated attendance records
   const attendance = getAttendance().filter(a => a.childId !== id);
   setStorageData(STORAGE_KEYS.ATTENDANCE, attendance);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'delete',
+        table: 'children',
+        data: { id },
+        localId: id
+      });
+    });
+  }
 };
 
 // Attendance management
@@ -228,7 +355,7 @@ export const getTodayAttendance = (): Attendance[] => {
 export const getAttendanceByChild = (childId: string): Attendance[] =>
   getAttendance().filter(a => a.childId === childId);
 
-export const markAttendance = (childId: string, present: boolean): void => {
+export const markAttendance = (childId: string, present: boolean, routeId: string): void => {
   const today = new Date().toISOString().split('T')[0];
   const attendance = getAttendance();
   
@@ -246,6 +373,18 @@ export const markAttendance = (childId: string, present: boolean): void => {
   
   filtered.push(newAttendance);
   setStorageData(STORAGE_KEYS.ATTENDANCE, filtered);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'insert',
+        table: 'attendance',
+        data: { ...newAttendance, routeId },
+        localId: newAttendance.id
+      });
+    });
+  }
   
   // Debug log for checking attendance saving
   console.log(`Attendance marked for child ${childId} on ${today}: ${present ? 'present' : 'absent'}`);
