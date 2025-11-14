@@ -143,14 +143,11 @@ export function SyncIndicator() {
     <button
       onClick={handleSync}
       disabled={!isOnline || isSyncing || pendingCount === 0}
-      className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-background/50 border border-border hover:bg-background/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background/50 border border-border hover:bg-background/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       title={isOnline ? 'Clique para sincronizar' : 'Sem conexão'}
     >
       {getStatusIcon()}
-      <span className="text-xs sm:text-sm font-medium hidden sm:inline">{getStatusText()}</span>
-      <span className="text-xs font-medium sm:hidden">
-        {!isOnline ? '!' : pendingCount > 0 ? pendingCount : '✓'}
-      </span>
+      <span className="text-sm font-medium">{getStatusText()}</span>
     </button>
   );
 }

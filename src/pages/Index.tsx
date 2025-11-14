@@ -72,29 +72,28 @@ const Index = () => {
       {/* Hero Header with Gradient */}
       <header className="sticky top-0 z-40 backdrop-blur-md border-b border-border/50">
         <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 animate-gradient">
-          <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-6 max-w-screen-xl">
-            <div className="flex items-center justify-between gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-                <div className="flex h-10 w-10 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-primary shadow-medium">
-                  <Bus className="h-5 w-5 sm:h-8 sm:w-8 text-primary-foreground" />
+          <div className="container mx-auto px-4 py-6 max-w-screen-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-primary shadow-medium">
+                  <Bus className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-base sm:text-2xl font-bold text-foreground truncate">Monitor Escolar</h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Monitor Escolar</h1>
+                  <p className="text-sm text-muted-foreground">
                     {user.email}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <SyncIndicator />
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleSignOut}
                   title="Sair"
-                  className="h-8 w-8 sm:h-10 sm:w-10"
                 >
-                  <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <LogOut className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -102,7 +101,7 @@ const Index = () => {
         </div>
       </header>
       
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-screen-xl">
+      <main className="container mx-auto px-4 py-6 max-w-screen-xl">
         {renderActiveTab()}
       </main>
       
