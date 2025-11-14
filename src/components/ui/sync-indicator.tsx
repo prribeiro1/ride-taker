@@ -45,11 +45,28 @@ export function SyncIndicator() {
     setSyncStatus('syncing');
 
     try {
+      // First, upload any local data to the server
+      const hasLocalData = 
+        localStorage.getItem('transport_routes') ||
+        localStorage.getItem('transport_points') ||
+        localStorage.getItem('transport_children') ||
+        localStorage.getItem('transport_attendance');
+
+      if (hasLocalData) {
+        const { uploadLocalDataToServer } = await import('@/lib/sync-service');
+        await uploadLocalDataToServer(user.id);
+        toast({
+          title: 'Dados enviados',
+          description: 'Seus dados locais foram salvos na nuvem',
+        });
+      }
+
+      // Then download from server to merge
       await downloadFromServer(user.id);
       setSyncStatus('success');
       toast({
-        title: 'Dados baixados',
-        description: 'Seus dados foram sincronizados da nuvem',
+        title: 'Sincronização completa',
+        description: 'Todos os dados estão sincronizados',
       });
       setTimeout(() => setSyncStatus('idle'), 2000);
     } catch (error) {

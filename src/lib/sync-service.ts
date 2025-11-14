@@ -212,12 +212,20 @@ export const downloadFromServer = async (userId: string): Promise<void> => {
       .eq('user_id', userId);
 
     if (routes) {
-      const localRoutes: Route[] = routes.map(r => ({
-        id: r.id,
-        name: r.name,
-        description: '',
-        createdAt: new Date(r.created_at)
-      }));
+      // Merge with existing local data instead of replacing
+      const existingRoutes = JSON.parse(localStorage.getItem('transport_routes') || '[]');
+      const serverRouteIds = new Set(routes.map(r => r.id));
+      const localOnlyRoutes = existingRoutes.filter((r: any) => !serverRouteIds.has(r.id));
+      
+      const localRoutes: Route[] = [
+        ...routes.map(r => ({
+          id: r.id,
+          name: r.name,
+          description: '',
+          createdAt: new Date(r.created_at)
+        })),
+        ...localOnlyRoutes
+      ];
       localStorage.setItem('transport_routes', JSON.stringify(localRoutes));
     }
 
@@ -228,13 +236,20 @@ export const downloadFromServer = async (userId: string): Promise<void> => {
       .eq('user_id', userId);
 
     if (points) {
-      const localPoints: Point[] = points.map(p => ({
-        id: p.id,
-        routeId: p.route_id,
-        name: p.name,
-        address: '',
-        createdAt: new Date(p.created_at)
-      }));
+      const existingPoints = JSON.parse(localStorage.getItem('transport_points') || '[]');
+      const serverPointIds = new Set(points.map(p => p.id));
+      const localOnlyPoints = existingPoints.filter((p: any) => !serverPointIds.has(p.id));
+      
+      const localPoints: Point[] = [
+        ...points.map(p => ({
+          id: p.id,
+          routeId: p.route_id,
+          name: p.name,
+          address: '',
+          createdAt: new Date(p.created_at)
+        })),
+        ...localOnlyPoints
+      ];
       localStorage.setItem('transport_points', JSON.stringify(localPoints));
     }
 
@@ -245,14 +260,21 @@ export const downloadFromServer = async (userId: string): Promise<void> => {
       .eq('user_id', userId);
 
     if (children) {
-      const localChildren: Child[] = children.map(c => ({
-        id: c.id,
-        pointId: c.point_id,
-        name: c.name,
-        responsible: '',
-        contact: '',
-        createdAt: new Date(c.created_at)
-      }));
+      const existingChildren = JSON.parse(localStorage.getItem('transport_children') || '[]');
+      const serverChildIds = new Set(children.map(c => c.id));
+      const localOnlyChildren = existingChildren.filter((c: any) => !serverChildIds.has(c.id));
+      
+      const localChildren: Child[] = [
+        ...children.map(c => ({
+          id: c.id,
+          pointId: c.point_id,
+          name: c.name,
+          responsible: '',
+          contact: '',
+          createdAt: new Date(c.created_at)
+        })),
+        ...localOnlyChildren
+      ];
       localStorage.setItem('transport_children', JSON.stringify(localChildren));
     }
 
@@ -263,19 +285,103 @@ export const downloadFromServer = async (userId: string): Promise<void> => {
       .eq('user_id', userId);
 
     if (attendance) {
-      const localAttendance: Attendance[] = attendance.map(a => ({
-        id: a.id,
-        childId: a.child_id,
-        date: a.date,
-        present: a.status === 'present',
-        timestamp: new Date(a.created_at)
-      }));
+      const existingAttendance = JSON.parse(localStorage.getItem('transport_attendance') || '[]');
+      const serverAttendanceIds = new Set(attendance.map(a => a.id));
+      const localOnlyAttendance = existingAttendance.filter((a: any) => !serverAttendanceIds.has(a.id));
+      
+      const localAttendance: Attendance[] = [
+        ...attendance.map(a => ({
+          id: a.id,
+          childId: a.child_id,
+          date: a.date,
+          present: a.status === 'present',
+          timestamp: new Date(a.created_at)
+        })),
+        ...localOnlyAttendance
+      ];
       localStorage.setItem('transport_attendance', JSON.stringify(localAttendance));
     }
 
     console.log('Data downloaded successfully');
   } catch (error) {
     console.error('Error downloading from server:', error);
+    throw error;
+  }
+};
+
+// Upload local data to server (for initial sync)
+export const uploadLocalDataToServer = async (userId: string): Promise<void> => {
+  try {
+    console.log('Uploading local data to server...');
+
+    // Upload routes
+    const localRoutes = JSON.parse(localStorage.getItem('transport_routes') || '[]');
+    for (const route of localRoutes) {
+      const { error } = await supabase
+        .from('routes')
+        .upsert({
+          id: route.id,
+          user_id: userId,
+          name: route.name,
+          created_at: route.createdAt,
+          updated_at: new Date().toISOString()
+        });
+      if (error) console.error('Error uploading route:', error);
+    }
+
+    // Upload points
+    const localPoints = JSON.parse(localStorage.getItem('transport_points') || '[]');
+    for (const point of localPoints) {
+      const { error } = await supabase
+        .from('points')
+        .upsert({
+          id: point.id,
+          user_id: userId,
+          route_id: point.routeId,
+          name: point.name,
+          created_at: point.createdAt,
+          updated_at: new Date().toISOString()
+        });
+      if (error) console.error('Error uploading point:', error);
+    }
+
+    // Upload children
+    const localChildren = JSON.parse(localStorage.getItem('transport_children') || '[]');
+    for (const child of localChildren) {
+      const { error } = await supabase
+        .from('children')
+        .upsert({
+          id: child.id,
+          user_id: userId,
+          point_id: child.pointId,
+          name: child.name,
+          created_at: child.createdAt,
+          updated_at: new Date().toISOString()
+        });
+      if (error) console.error('Error uploading child:', error);
+    }
+
+    // Upload attendance
+    const localAttendance = JSON.parse(localStorage.getItem('transport_attendance') || '[]');
+    for (const attendance of localAttendance) {
+      const { error } = await supabase
+        .from('attendance')
+        .upsert({
+          id: attendance.id,
+          user_id: userId,
+          child_id: attendance.childId,
+          route_id: '', // We need to look this up
+          date: attendance.date,
+          status: attendance.present ? 'present' : 'absent',
+          created_at: attendance.timestamp,
+          updated_at: new Date().toISOString()
+        });
+      if (error) console.error('Error uploading attendance:', error);
+    }
+
+    console.log('Local data uploaded successfully');
+  } catch (error) {
+    console.error('Error uploading local data:', error);
     throw error;
   }
 };
