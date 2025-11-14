@@ -22,8 +22,8 @@ interface TabsNavigationProps {
 
 export function TabsNavigation({ activeTab, onTabChange }: TabsNavigationProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50 shadow-large">
-      <div className="flex justify-around items-center px-3 py-3 max-w-screen-xl mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/20 z-50 shadow-large">
+      <div className="flex justify-around items-center px-2 py-3 max-w-screen-xl mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -33,19 +33,27 @@ export function TabsNavigation({ activeTab, onTabChange }: TabsNavigationProps) 
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center gap-1.5 px-4 py-2.5 rounded-xl transition-all min-w-0 flex-1",
+                "flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl transition-all min-w-0 flex-1 relative",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-medium scale-105"
-                  : "text-muted-foreground hover:bg-accent-light hover:text-accent hover:scale-102"
+                  ? "text-primary scale-110"
+                  : "text-muted-foreground hover:text-accent hover:scale-105"
               )}
             >
-              <Icon className={cn(
-                "h-5 w-5 flex-shrink-0 transition-transform",
-                isActive && "scale-110"
-              )} />
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-primary opacity-10 rounded-2xl" />
+              )}
+              <div className={cn(
+                "p-2 rounded-xl transition-all",
+                isActive && "bg-gradient-primary shadow-medium"
+              )}>
+                <Icon className={cn(
+                  "h-5 w-5 flex-shrink-0 transition-transform",
+                  isActive && "text-primary-foreground scale-110"
+                )} />
+              </div>
               <span className={cn(
-                "text-xs truncate transition-all",
-                isActive ? "font-semibold" : "font-medium"
+                "text-xs truncate transition-all relative z-10",
+                isActive ? "font-bold" : "font-medium"
               )}>{tab.label}</span>
             </button>
           );

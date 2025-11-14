@@ -73,10 +73,12 @@ export function RoutesTab() {
   };
 
   return (
-    <div className="container mx-auto p-4 pb-20">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Rotas</h1>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Rotas
+          </h2>
           <p className="text-muted-foreground mt-1">Gerencie as rotas de transporte</p>
         </div>
         
@@ -122,37 +124,50 @@ export function RoutesTab() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 stagger-children">
         {routes.length === 0 ? (
-          <Card className="col-span-full p-8 text-center">
-            <MapPin className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Nenhuma rota cadastrada ainda</p>
+          <Card glass className="col-span-full p-12 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="p-4 bg-gradient-primary rounded-2xl shadow-medium">
+                <MapPin className="h-12 w-12 text-primary-foreground" />
+              </div>
+              <p className="text-muted-foreground text-lg">Nenhuma rota cadastrada ainda</p>
+            </div>
           </Card>
         ) : (
           routes.map((route) => (
-            <Card key={route.id} className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{route.name}</h3>
-                  {route.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{route.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(route)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(route.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+            <Card key={route.id} glass className="group">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="p-3 bg-gradient-primary rounded-xl shadow-medium group-hover:scale-110 transition-transform">
+                      <MapPin className="h-6 w-6 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-xl text-foreground">{route.name}</h3>
+                      {route.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{route.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(route)}
+                      className="hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(route.id)}
+                      className="hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>

@@ -229,49 +229,55 @@ export function PointsTab() {
 
       <div className="space-y-3">
         {points.length === 0 ? (
-          <Card className="shadow-soft">
-            <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-              <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-semibold text-lg mb-2">Nenhum ponto cadastrado</h3>
-              <p className="text-muted-foreground mb-4">
+          <Card glass className="shadow-soft">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-4 bg-gradient-accent rounded-2xl shadow-medium mb-4">
+                <MapPin className="h-12 w-12 text-accent-foreground" />
+              </div>
+              <h3 className="font-bold text-xl mb-2 text-foreground">Nenhum ponto cadastrado</h3>
+              <p className="text-muted-foreground">
                 Comece cadastrando um ponto de embarque
               </p>
             </CardContent>
           </Card>
         ) : (
           points.map((point) => (
-            <Card key={point.id} className="shadow-soft hover:shadow-medium transition-smooth">
+            <Card key={point.id} glass className="hover:shadow-hover transition-all group">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {getRouteName(point.routeId)}
+                  <div className="flex-1 flex items-start gap-3">
+                    <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                      <MapPin className="h-5 w-5 text-accent" />
                     </div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-primary" />
-                      {point.name}
-                    </CardTitle>
-                    {point.address && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {point.address}
-                      </p>
-                    )}
+                    <div className="flex-1">
+                      <div className="text-xs text-muted-foreground mb-1 font-medium">
+                        {getRouteName(point.routeId)}
+                      </div>
+                      <CardTitle className="text-lg text-foreground">
+                        {point.name}
+                      </CardTitle>
+                      {point.address && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {point.address}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="flex gap-1 ml-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => handleEdit(point)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => handleDelete(point)}
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

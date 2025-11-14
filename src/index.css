@@ -8,8 +8,10 @@ All colors MUST be HSL. Professional blue/green theme for education transport.
 
 @layer base {
   :root {
-    /* Backgrounds */
+    /* Backgrounds with gradient support */
     --background: 210 25% 98%;
+    --background-start: 210 35% 96%;
+    --background-end: 175 25% 98%;
     --foreground: 217 25% 12%;
 
     /* Cards & Surfaces */
@@ -60,6 +62,8 @@ All colors MUST be HSL. Professional blue/green theme for education transport.
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(175 60% 58%) 100%);
+    --gradient-background: linear-gradient(135deg, hsl(var(--background-start)) 0%, hsl(var(--background-end)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(217 85% 52% / 0.1) 0%, hsl(175 60% 48% / 0.1) 100%);
     
     /* Enhanced Shadows for Depth */
     --shadow-soft: 0 1px 3px 0 hsl(217 25% 12% / 0.08), 0 1px 2px -1px hsl(217 25% 12% / 0.08);
@@ -146,7 +150,9 @@ All colors MUST be HSL. Professional blue/green theme for education transport.
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background: linear-gradient(135deg, hsl(var(--background-start)) 0%, hsl(var(--background-end)) 100%);
+    background-attachment: fixed;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -184,4 +190,59 @@ All colors MUST be HSL. Professional blue/green theme for education transport.
   small {
     @apply text-sm text-muted-foreground;
   }
+
+  /* Glassmorphism utilities */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .glass-dark {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Animated gradient backgrounds */
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  /* Fade in animation for cards */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+  }
+
+  /* Stagger children animations */
+  .stagger-children > * {
+    animation: fade-in-up 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
 }
