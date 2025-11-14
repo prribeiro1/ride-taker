@@ -60,7 +60,28 @@ export function AttendanceTab() {
 
   const handleAttendance = (childId: string, present: boolean) => {
     try {
-      markAttendance(childId, present);
+      // Find the child and their point to get the route
+      const child = children.find(c => c.id === childId);
+      if (!child) {
+        toast({
+          title: "Erro",
+          description: "Criança não encontrada",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const point = points.find(p => p.id === child.pointId);
+      if (!point) {
+        toast({
+          title: "Erro",
+          description: "Ponto não encontrado",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      markAttendance(childId, present, point.routeId);
       setTodayAttendance(getTodayAttendance());
       
       toast({

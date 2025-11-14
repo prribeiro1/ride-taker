@@ -10,6 +10,7 @@ import { PWAStatus } from "@/components/ui/pwa-status";
 import { PWAUpdatePrompt } from "@/components/pwa-update-prompt";
 import { ForceUpdateChecker } from "@/components/force-update-checker";
 import { SplashScreen } from "@/components/splash-screen";
+import { SyncIndicator } from "@/components/ui/sync-indicator";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Bus, LogOut } from "lucide-react";
@@ -84,14 +85,17 @@ const Index = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSignOut}
-                title="Sair"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <SyncIndicator />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSignOut}
+                  title="Sair"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
