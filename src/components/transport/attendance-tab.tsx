@@ -142,17 +142,19 @@ export function AttendanceTab() {
       </div>
 
       {children.length === 0 ? (
-        <Card className="shadow-soft">
-          <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-            <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-semibold text-lg mb-2">Nenhuma criança cadastrada</h3>
+        <Card glass className="shadow-soft">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="p-4 bg-gradient-primary rounded-2xl shadow-medium mb-4">
+              <Users className="h-12 w-12 text-primary-foreground" />
+            </div>
+            <h3 className="font-bold text-xl mb-2 text-foreground">Nenhuma criança cadastrada</h3>
             <p className="text-muted-foreground">
               Cadastre pontos e crianças primeiro para fazer a chamada
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 stagger-children">
           {dataByRoute.map(({ route, points: routePoints }) => (
             <Collapsible
               key={route.id}
@@ -162,9 +164,11 @@ export function AttendanceTab() {
             >
               {/* Route Header - Clickable with counters */}
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center gap-2 px-2 cursor-pointer hover:opacity-80 transition-opacity">
-                  <div className="h-px flex-1 bg-border" />
-                  <h2 className="text-lg font-bold text-primary uppercase tracking-wide flex items-center gap-2">
+                <div className="flex items-center gap-3 p-4 glass rounded-xl cursor-pointer hover:shadow-medium transition-all group">
+                  <div className="p-2 bg-gradient-primary rounded-lg shadow-medium group-hover:scale-110 transition-transform">
+                    <Calendar className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent uppercase tracking-wide flex items-center gap-2 flex-1">
                     {route.name}
                     {(() => {
                       const routeChildrenIds = routePoints.flatMap(p => p.children.map(c => c.id));
@@ -175,31 +179,32 @@ export function AttendanceTab() {
                         routeChildrenIds.includes(a.childId) && !a.present
                       ).length;
                       return (
-                        <span className="text-sm font-normal">
-                          (<span className="text-success">{routePresent}</span>/
-                          <span className="text-destructive">{routeAbsent}</span>)
+                        <span className="text-sm font-normal text-foreground">
+                          (<span className="text-success font-semibold">{routePresent}</span>/
+                          <span className="text-destructive font-semibold">{routeAbsent}</span>)
                         </span>
                       );
                     })()}
-                    <ChevronDown 
-                      className={`h-5 w-5 transition-transform ${
-                        openRoutes.has(route.id) ? 'rotate-180' : ''
-                      }`} 
-                    />
                   </h2>
-                  <div className="h-px flex-1 bg-border" />
+                  <ChevronDown 
+                    className={`h-6 w-6 text-muted-foreground transition-transform duration-300 ${
+                      openRoutes.has(route.id) ? 'rotate-180' : ''
+                    }`} 
+                  />
                 </div>
               </CollapsibleTrigger>
 
               {/* Points in this Route */}
-              <CollapsibleContent className="space-y-3">
+              <CollapsibleContent className="space-y-3 pl-2">
                 {routePoints.map(({ point, children: pointChildren }) => (
-                <Card key={point.id} className="shadow-soft">
+                <Card key={point.id} glass>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      {point.name}
-                      <Badge variant="secondary" className="ml-auto">
+                      <div className="p-1.5 bg-primary/10 rounded-lg">
+                        <Calendar className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-foreground">{point.name}</span>
+                      <Badge variant="secondary" className="ml-auto bg-accent/10 text-accent font-semibold">
                         {pointChildren.length} {pointChildren.length === 1 ? 'criança' : 'crianças'}
                       </Badge>
                     </CardTitle>
