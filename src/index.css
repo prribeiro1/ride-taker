@@ -2,60 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Transport School Monitor PWA Design System 
-All colors MUST be HSL. Clean blue/white/gray theme for education.
+/* Transport School Monitor PWA - Modern Design System 
+All colors MUST be HSL. Professional blue/green theme for education transport.
 */
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222.2 84% 4.9%;
+    /* Backgrounds */
+    --background: 210 25% 98%;
+    --foreground: 217 25% 12%;
 
+    /* Cards & Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 217 25% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 217 25% 12%;
 
-    /* Blue primary for transport/education theme */
-    --primary: 217 91% 60%;
+    /* Primary - Professional Blue */
+    --primary: 217 85% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 70%;
+    --primary-glow: 217 85% 65%;
+    --primary-dark: 217 85% 42%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    /* Secondary - Soft Blue-Gray */
+    --secondary: 210 30% 95%;
+    --secondary-foreground: 217 25% 20%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - Light Gray */
+    --muted: 210 20% 94%;
+    --muted-foreground: 217 15% 50%;
 
-    --accent: 210 40% 94%;
-    --accent-foreground: 222.2 84% 4.9%;
+    /* Accent - Teal Green for CTAs */
+    --accent: 175 60% 48%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 175 60% 92%;
 
-    --success: 142 76% 36%;
+    /* Semantic Colors */
+    --success: 145 70% 42%;
     --success-foreground: 0 0% 100%;
+    --success-light: 145 60% 95%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 95% 55%;
     --warning-foreground: 0 0% 100%;
+    --warning-light: 38 90% 95%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
+    --destructive-light: 0 70% 96%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 0 0% 100%;
-    --ring: 217 91% 60%;
+    /* Borders & Inputs */
+    --border: 217 20% 88%;
+    --input: 217 20% 96%;
+    --ring: 217 85% 52%;
 
-    /* Custom gradients for PWA */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-soft: linear-gradient(180deg, hsl(var(--background)), hsl(var(--accent)));
+    /* Enhanced Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(175 60% 58%) 100%);
     
-    /* Shadows for depth */
-    --shadow-soft: 0 2px 8px -2px hsl(var(--primary) / 0.1);
-    --shadow-medium: 0 4px 16px -4px hsl(var(--primary) / 0.15);
+    /* Enhanced Shadows for Depth */
+    --shadow-soft: 0 1px 3px 0 hsl(217 25% 12% / 0.08), 0 1px 2px -1px hsl(217 25% 12% / 0.08);
+    --shadow-medium: 0 4px 6px -1px hsl(217 25% 12% / 0.08), 0 2px 4px -2px hsl(217 25% 12% / 0.08);
+    --shadow-large: 0 10px 15px -3px hsl(217 25% 12% / 0.10), 0 4px 6px -4px hsl(217 25% 12% / 0.08);
+    --shadow-hover: 0 12px 24px -4px hsl(217 25% 12% / 0.12), 0 8px 16px -8px hsl(217 25% 12% / 0.10);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --radius: 0.5rem;
+    /* Border Radius */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
+
+    /* Spacing Scale */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -119,6 +146,42 @@ All colors MUST be HSL. Clean blue/white/gray theme for education.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography Scale */
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg font-medium;
+  }
+
+  h5 {
+    @apply text-base font-medium;
+  }
+
+  h6 {
+    @apply text-sm font-medium;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+  }
+
+  small {
+    @apply text-sm text-muted-foreground;
   }
 }

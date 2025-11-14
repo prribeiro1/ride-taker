@@ -30,12 +30,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
+    <div className="min-h-screen bg-gradient-soft pb-20">
       <ForceUpdateChecker />
       <PWAStatus />
       <PWAUpdatePrompt />
       
-      <main className="min-h-screen">
+      <main className="min-h-screen container mx-auto px-4 py-6 max-w-screen-xl">
         {renderActiveTab()}
       </main>
       
