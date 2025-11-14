@@ -10,6 +10,7 @@ import { PWAStatus } from "@/components/ui/pwa-status";
 import { PWAUpdatePrompt } from "@/components/pwa-update-prompt";
 import { ForceUpdateChecker } from "@/components/force-update-checker";
 import { SplashScreen } from "@/components/splash-screen";
+import { SyncIndicator } from "@/components/ui/sync-indicator";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Bus, LogOut } from "lucide-react";
@@ -79,9 +80,12 @@ const Index = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-base sm:text-2xl font-bold text-foreground truncate">Monitor Escolar</h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                    {user.email}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      {user.email}
+                    </p>
+                    <SyncIndicator />
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
