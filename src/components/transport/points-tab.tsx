@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, Edit, Trash2 } from "lucide-react";
+import { Plus, MapPin, Edit, Trash2, ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { addPoint, addMultiplePoints, getPoints, updatePoint, deletePoint, getRoutes, type Point, type Route } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ export function PointsTab() {
   const [routes, setRoutes] = useState<Route[]>(getRoutes());
   const [editingPoint, setEditingPoint] = useState<Point | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [openRoutes, setOpenRoutes] = useState<Set<string>>(new Set(routes.map(r => r.id)));
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -26,6 +28,18 @@ export function PointsTab() {
   const resetForm = () => {
     setFormData({ routeId: "", names: "", address: "" });
     setEditingPoint(null);
+  };
+
+  const toggleRoute = (routeId: string) => {
+    setOpenRoutes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(routeId)) {
+        newSet.delete(routeId);
+      } else {
+        newSet.add(routeId);
+      }
+      return newSet;
+    });
   };
 
   const getRouteName = (routeId: string) => {
@@ -227,7 +241,7 @@ export function PointsTab() {
         </Dialog>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {points.length === 0 ? (
           <Card glass className="shadow-soft">
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -241,51 +255,85 @@ export function PointsTab() {
             </CardContent>
           </Card>
         ) : (
-          points.map((point) => (
-            <Card key={point.id} glass className="hover:shadow-hover transition-all group">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 flex items-start gap-3">
-                    <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
-                      <MapPin className="h-5 w-5 text-accent" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground mb-1 font-medium">
-                        {getRouteName(point.routeId)}
+          <div className="space-y-4 stagger-children">
+            {routes.map(route => {
+              const routePoints = points.filter(p => p.routeId === route.id);
+              if (routePoints.length === 0) return null;
+              
+              return (
+                <Collapsible
+                  key={route.id}
+                  open={openRoutes.has(route.id)}
+                  onOpenChange={() => toggleRoute(route.id)}
+                  className="space-y-3"
+                >
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-3 p-4 glass rounded-xl cursor-pointer hover:shadow-medium transition-all group">
+                      <div className="p-2 bg-gradient-primary rounded-lg shadow-medium group-hover:scale-110 transition-transform">
+                        <MapPin className="h-5 w-5 text-primary-foreground" />
                       </div>
-                      <CardTitle className="text-lg text-foreground">
-                        {point.name}
-                      </CardTitle>
-                      {point.address && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {point.address}
-                        </p>
-                      )}
+                      <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent uppercase tracking-wide flex-1 text-left">
+                        {route.name}
+                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                          ({routePoints.length} {routePoints.length === 1 ? 'ponto' : 'pontos'})
+                        </span>
+                      </h2>
+                      <ChevronDown 
+                        className={`h-6 w-6 text-muted-foreground transition-transform duration-300 ${
+                          openRoutes.has(route.id) ? 'rotate-180' : ''
+                        }`} 
+                      />
                     </div>
-                  </div>
-                  
-                  <div className="flex gap-1 ml-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEdit(point)}
-                      className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(point)}
-                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent className="space-y-3 pl-2">
+                    {routePoints.map((point) => (
+                      <Card key={point.id} glass className="hover:shadow-hover transition-all group">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 flex items-start gap-3">
+                              <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                                <MapPin className="h-5 w-5 text-accent" />
+                              </div>
+                              <div className="flex-1">
+                                <CardTitle className="text-lg text-foreground">
+                                  {point.name}
+                                </CardTitle>
+                                {point.address && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {point.address}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-1 ml-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(point)}
+                                className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(point)}
+                                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
