@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, User, Edit, Trash2, Phone } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, User, Edit, Trash2, Phone, ChevronDown, MapPin } from "lucide-react";
 import { 
   addChild,
   addMultipleChildren,
@@ -26,6 +27,7 @@ export function SettingsTab() {
   const [routes, setRoutes] = useState<Route[]>(getRoutes());
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [openPoints, setOpenPoints] = useState<Set<string>>(new Set(points.map(p => p.id)));
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -38,6 +40,18 @@ export function SettingsTab() {
   const resetForm = () => {
     setFormData({ names: "", responsible: "", contact: "", pointId: "" });
     setEditingChild(null);
+  };
+
+  const togglePoint = (pointId: string) => {
+    setOpenPoints(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(pointId)) {
+        newSet.delete(pointId);
+      } else {
+        newSet.add(pointId);
+      }
+      return newSet;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -289,77 +303,116 @@ export function SettingsTab() {
       </div>
 
       {points.length === 0 && (
-        <Card className="shadow-soft border-warning">
-          <CardContent className="p-4">
-            <p className="text-warning text-sm">
-              ⚠️ Cadastre pontos de embarque primeiro antes de adicionar crianças
+        <Card glass className="shadow-soft border-warning/50">
+          <CardContent className="p-6">
+            <p className="text-warning text-center">
+              ⚠️ Nenhum ponto de embarque cadastrado. Configure pontos primeiro para cadastrar crianças.
             </p>
           </CardContent>
         </Card>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {children.length === 0 ? (
-          <Card className="shadow-soft">
-            <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-              <User className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-semibold text-lg mb-2">Nenhuma criança cadastrada</h3>
-              <p className="text-muted-foreground mb-4">
-                Comece cadastrando as crianças que usam o transporte
+          <Card glass className="shadow-soft">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-4 bg-gradient-primary rounded-2xl shadow-medium mb-4">
+                <User className="h-12 w-12 text-primary-foreground" />
+              </div>
+              <h3 className="font-bold text-xl mb-2 text-foreground">Nenhuma criança cadastrada</h3>
+              <p className="text-muted-foreground">
+                Comece cadastrando as crianças do transporte
               </p>
             </CardContent>
           </Card>
         ) : (
-          children.map((child) => (
-            <Card key={child.id} className="shadow-soft hover:shadow-medium transition-smooth">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <User className="h-5 w-5 text-primary" />
-                      {child.name}
-                    </CardTitle>
-                    <div className="space-y-1 mt-2 text-sm text-muted-foreground">
-                      <p className="text-xs">
-                        {getRouteName(child.pointId)} → {getPointName(child.pointId)}
-                      </p>
-                      {child.responsible && (
-                        <p className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          Responsável: {child.responsible}
+          <div className="space-y-4 stagger-children">
+            {points.map(point => {
+              const pointChildren = children.filter(c => c.pointId === point.id);
+              if (pointChildren.length === 0) return null;
+              
+              return (
+                <Collapsible
+                  key={point.id}
+                  open={openPoints.has(point.id)}
+                  onOpenChange={() => togglePoint(point.id)}
+                  className="space-y-3"
+                >
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-3 p-4 glass rounded-xl cursor-pointer hover:shadow-medium transition-all group">
+                      <div className="p-2 bg-gradient-accent rounded-lg shadow-medium group-hover:scale-110 transition-transform">
+                        <MapPin className="h-5 w-5 text-accent-foreground" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                          {point.name}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          {getRouteName(point.id)} • {pointChildren.length} {pointChildren.length === 1 ? 'criança' : 'crianças'}
                         </p>
-                      )}
-                      {child.contact && (
-                        <p className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          {child.contact}
-                        </p>
-                      )}
+                      </div>
+                      <ChevronDown 
+                        className={`h-6 w-6 text-muted-foreground transition-transform duration-300 ${
+                          openPoints.has(point.id) ? 'rotate-180' : ''
+                        }`} 
+                      />
                     </div>
-                  </div>
-                  
-                  <div className="flex gap-1 ml-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(child)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(child)}
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent className="space-y-3 pl-2">
+                    {pointChildren.map((child) => (
+                      <Card key={child.id} glass className="hover:shadow-hover transition-all group">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 flex items-start gap-3">
+                              <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                                <User className="h-5 w-5 text-primary" />
+                              </div>
+                              <div className="flex-1">
+                                <CardTitle className="text-lg text-foreground">
+                                  {child.name}
+                                </CardTitle>
+                                {child.responsible && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    Responsável: {child.responsible}
+                                  </p>
+                                )}
+                                {child.contact && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <Phone className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">{child.contact}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-1 ml-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(child)}
+                                className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(child)}
+                                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
