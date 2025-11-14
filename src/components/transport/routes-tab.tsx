@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Route as RouteIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addRoute, getRoutes, updateRoute, deleteRoute, type Route } from "@/lib/storage";
 
@@ -129,7 +129,7 @@ export function RoutesTab() {
           <Card glass className="col-span-full p-12 text-center">
             <div className="flex flex-col items-center gap-4">
               <div className="p-4 bg-gradient-primary rounded-2xl shadow-medium">
-                <MapPin className="h-12 w-12 text-primary-foreground" />
+                <RouteIcon className="h-12 w-12 text-primary-foreground" />
               </div>
               <p className="text-muted-foreground text-lg">Nenhuma rota cadastrada ainda</p>
             </div>
@@ -141,7 +141,7 @@ export function RoutesTab() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-start gap-3 flex-1">
                     <div className="p-3 bg-gradient-primary rounded-xl shadow-medium group-hover:scale-110 transition-transform">
-                      <MapPin className="h-6 w-6 text-primary-foreground" />
+                      <RouteIcon className="h-6 w-6 text-primary-foreground" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-xl text-foreground">{route.name}</h3>

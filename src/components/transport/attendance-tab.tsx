@@ -178,10 +178,12 @@ export function AttendanceTab() {
                       const routeAbsent = todayAttendance.filter(a => 
                         routeChildrenIds.includes(a.childId) && !a.present
                       ).length;
+                      const routeTotalChildren = routeChildrenIds.length;
                       return (
                         <span className="text-sm font-normal text-foreground">
                           (<span className="text-success font-semibold">{routePresent}</span>/
-                          <span className="text-destructive font-semibold">{routeAbsent}</span>)
+                          <span className="text-destructive font-semibold">{routeAbsent}</span>) 
+                          <span className="text-muted-foreground ml-1">de {routeTotalChildren}</span>
                         </span>
                       );
                     })()}
