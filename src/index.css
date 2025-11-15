@@ -9,10 +9,10 @@ All colors MUST be HSL. Professional blue/green theme for education transport.
 @layer base {
   :root {
     /* Backgrounds with gradient support */
-    --background: 210 25% 98%;
-    --background-start: 210 35% 96%;
-    --background-end: 175 25% 98%;
-    --foreground: 217 25% 12%;
+    --background: 240 50% 11%;
+    --background-start: 240 50% 11%;
+    --background-end: 240 50% 11%;
+    --foreground: 217 25% 92%;
 
     /* Cards & Surfaces */
     --card: 0 0% 100%;
@@ -22,10 +22,10 @@ All colors MUST be HSL. Professional blue/green theme for education transport.
     --popover-foreground: 217 25% 12%;
 
     /* Primary - Professional Blue */
-    --primary: 217 85% 52%;
+    --primary: 235 96% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 85% 65%;
-    --primary-dark: 217 85% 42%;
+    --primary-glow: 235 96% 70%;
+    --primary-dark: 235 96% 50%;
 
     /* Secondary - Soft Blue-Gray */
     --secondary: 210 30% 95%;

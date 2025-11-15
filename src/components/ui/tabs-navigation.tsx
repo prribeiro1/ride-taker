@@ -10,8 +10,8 @@ interface Tab {
 const tabs: Tab[] = [
   { id: "routes", label: "Rotas", icon: Route },
   { id: "points", label: "Pontos", icon: MapPin },
-  { id: "attendance", label: "Chamada", icon: Calendar },
   { id: "settings", label: "Alunos", icon: Users },
+  { id: "attendance", label: "Chamada", icon: Calendar },
   { id: "occurrences", label: "Ocorrências", icon: AlertCircle },
   { id: "reports", label: "Relatórios", icon: FileText },
 ];
