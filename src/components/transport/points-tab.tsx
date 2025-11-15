@@ -292,7 +292,7 @@ export function PointsTab() {
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 flex items-start gap-3">
-                              <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                              <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors border-2 border-background">
                                 <MapPin className="h-5 w-5 text-accent" />
                               </div>
                               <div className="flex-1">

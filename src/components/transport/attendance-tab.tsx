@@ -227,7 +227,7 @@ export function AttendanceTab() {
                         <Calendar className="h-4 w-4 text-primary" />
                       </div>
                       <span className="text-foreground">{point.name}</span>
-                      <Badge variant="secondary" className="ml-auto bg-accent/10 text-accent font-semibold">
+                      <Badge variant="secondary" className="ml-auto bg-card text-card-foreground font-semibold">
                         {pointChildren.length} {pointChildren.length === 1 ? 'criança' : 'crianças'}
                       </Badge>
                     </CardTitle>
