@@ -142,7 +142,10 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      // Use deep link for mobile app, regular URL for web
+      const redirectUrl = window.location.hostname === 'localhost' 
+        ? `${window.location.origin}/`
+        : 'app.lovable.f42c690ddbcc4ae6804fb01c1b9394b4://callback';
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
