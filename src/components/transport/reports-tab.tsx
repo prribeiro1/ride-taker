@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileDown, BarChart3, Calendar, CheckCircle, XCircle, Eye, EyeOff, ChevronDown, FileText } from "lucide-react";
+import { BarChart3, Calendar, CheckCircle, XCircle, Eye, EyeOff, ChevronDown, FileText } from "lucide-react";
 import { getMonthlyReport, getAttendance, getChildren, getRoutes, getPoints, type Route, type Point } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
@@ -89,47 +89,6 @@ export function ReportsTab() {
     return days;
   };
 
-  const exportToCSV = () => {
-    if (reportData.length === 0) {
-      toast({
-        title: "Aviso",
-        description: "Não há dados para exportar",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const headers = ["Criança", "Responsável", "Presença", "Falta", "Total", "Ocorrências"];
-    const rows = reportData.map(item => [
-      item.child.name,
-      item.child.responsible || '-',
-      item.present.toString(),
-      item.absent.toString(),
-      item.total.toString(),
-      item.occurrences.length.toString()
-    ]);
-
-    const csvContent = [headers, ...rows]
-      .map(row => row.map(field => `"${field}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute("href", url);
-    link.setAttribute("download", `relatorio_${selectedYear}_${selectedMonth.toString().padStart(2, '0')}.csv`);
-    link.style.visibility = "hidden";
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "Sucesso",
-      description: "Relatório exportado em CSV com sucesso"
-    });
-  };
 
   const exportToPDF = () => {
     if (reportData.length === 0) {
@@ -272,25 +231,14 @@ export function ReportsTab() {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button 
-              onClick={exportToCSV}
-              disabled={reportData.length === 0}
-              className="flex-1 bg-gradient-primary"
-            >
-              <FileDown className="h-4 w-4 mr-2" />
-              Exportar CSV
-            </Button>
-            
-            <Button 
-              onClick={exportToPDF}
-              disabled={reportData.length === 0}
-              className="flex-1 bg-gradient-primary"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Exportar PDF
-            </Button>
-          </div>
+          <Button 
+            onClick={exportToPDF}
+            disabled={reportData.length === 0}
+            className="w-full bg-gradient-primary"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Exportar PDF
+          </Button>
         </CardContent>
       </Card>
 
