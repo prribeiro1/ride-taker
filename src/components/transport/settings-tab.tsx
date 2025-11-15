@@ -182,6 +182,7 @@ export function SettingsTab() {
           <DialogTrigger asChild>
             <Button 
               className="bg-gradient-primary shadow-medium"
+              size="sm"
               disabled={points.length === 0}
             >
               <Plus className="h-4 w-4 mr-2" />
