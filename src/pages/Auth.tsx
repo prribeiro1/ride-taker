@@ -142,10 +142,13 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      // Use deep link for mobile app, regular URL for web
-      const redirectUrl = window.location.hostname === 'localhost' 
-        ? `${window.location.origin}/`
-        : 'app.lovable.f42c690ddbcc4ae6804fb01c1b9394b4://callback';
+      // Detectar se está em app nativo (Capacitor) ou PWA
+      const isNativeApp = (window as any).Capacitor?.isNativePlatform?.() || false;
+      
+      // Deep link para Android APK, URL normal para PWA
+      const redirectUrl = isNativeApp
+        ? 'app.lovable.f42c690ddbcc4ae6804fb01c1b9394b4://callback'
+        : `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
