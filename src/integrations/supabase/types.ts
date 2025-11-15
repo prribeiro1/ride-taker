@@ -97,6 +97,47 @@ export type Database = {
           },
         ]
       }
+      occurrences: {
+        Row: {
+          child_id: string
+          created_at: string
+          date: string
+          id: string
+          observation: string | null
+          occurrence_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          date?: string
+          id?: string
+          observation?: string | null
+          occurrence_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          observation?: string | null
+          occurrence_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "occurrences_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       points: {
         Row: {
           created_at: string

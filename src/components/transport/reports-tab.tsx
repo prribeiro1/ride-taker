@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileDown, BarChart3, Calendar, CheckCircle, XCircle, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { FileDown, BarChart3, Calendar, CheckCircle, XCircle, Eye, EyeOff, ChevronDown, FileText } from "lucide-react";
 import { getMonthlyReport, getAttendance, getChildren, getRoutes, getPoints, type Route, type Point } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export function ReportsTab() {
   const currentDate = new Date();
@@ -97,13 +99,14 @@ export function ReportsTab() {
       return;
     }
 
-    const headers = ["Criança", "Responsável", "Presença", "Falta", "Total"];
+    const headers = ["Criança", "Responsável", "Presença", "Falta", "Total", "Ocorrências"];
     const rows = reportData.map(item => [
       item.child.name,
-      item.child.responsible,
+      item.child.responsible || '-',
       item.present.toString(),
       item.absent.toString(),
-      item.total.toString()
+      item.total.toString(),
+      item.occurrences.length.toString()
     ]);
 
     const csvContent = [headers, ...rows]
@@ -124,7 +127,88 @@ export function ReportsTab() {
 
     toast({
       title: "Sucesso",
-      description: "Relatório exportado com sucesso"
+      description: "Relatório exportado em CSV com sucesso"
+    });
+  };
+
+  const exportToPDF = () => {
+    if (reportData.length === 0) {
+      toast({
+        title: "Aviso",
+        description: "Não há dados para exportar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(16);
+    doc.text("Relatório de Frequência", 14, 15);
+    doc.setFontSize(11);
+    doc.text(`Período: ${monthNames[selectedMonth - 1]}/${selectedYear}`, 14, 22);
+
+    // Summary stats
+    const totalPresent = reportData.reduce((sum, item) => sum + item.present, 0);
+    const totalAbsent = reportData.reduce((sum, item) => sum + item.absent, 0);
+    const totalOccurrences = reportData.reduce((sum, item) => sum + item.occurrences.length, 0);
+    
+    doc.setFontSize(10);
+    doc.text(`Total de Presenças: ${totalPresent}`, 14, 29);
+    doc.text(`Total de Faltas: ${totalAbsent}`, 14, 35);
+    doc.text(`Total de Ocorrências: ${totalOccurrences}`, 14, 41);
+
+    // Attendance table
+    const tableData = reportData.map(item => [
+      item.child.name,
+      item.child.responsible || '-',
+      item.present.toString(),
+      item.absent.toString(),
+      item.total.toString(),
+      item.occurrences.length.toString()
+    ]);
+
+    autoTable(doc, {
+      startY: 48,
+      head: [['Criança', 'Responsável', 'Presença', 'Falta', 'Total', 'Ocorrências']],
+      body: tableData,
+      theme: 'striped',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+
+    // Occurrences details
+    const occurrencesData = reportData.flatMap(item => 
+      item.occurrences.map(occ => [
+        item.child.name,
+        occ.occurrenceType,
+        occ.date,
+        occ.observation || '-'
+      ])
+    );
+
+    if (occurrencesData.length > 0) {
+      const finalY = (doc as any).lastAutoTable.finalY || 48;
+      
+      doc.setFontSize(12);
+      doc.text("Detalhes das Ocorrências", 14, finalY + 10);
+
+      autoTable(doc, {
+        startY: finalY + 15,
+        head: [['Criança', 'Tipo', 'Data', 'Observação']],
+        body: occurrencesData,
+        theme: 'striped',
+        styles: { fontSize: 7 },
+        headStyles: { fillColor: [239, 68, 68] }
+      });
+    }
+
+    doc.save(`relatorio_${selectedYear}_${selectedMonth.toString().padStart(2, '0')}.pdf`);
+
+    toast({
+      title: "Sucesso",
+      description: "Relatório exportado em PDF com sucesso"
     });
   };
 
@@ -188,14 +272,25 @@ export function ReportsTab() {
             </div>
           </div>
 
-          <Button 
-            onClick={exportToCSV}
-            disabled={reportData.length === 0}
-            className="w-full bg-gradient-primary"
-          >
-            <FileDown className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={exportToCSV}
+              disabled={reportData.length === 0}
+              className="flex-1 bg-gradient-primary"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+            
+            <Button 
+              onClick={exportToPDF}
+              disabled={reportData.length === 0}
+              className="flex-1 bg-gradient-primary"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Exportar PDF
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -362,6 +457,29 @@ export function ReportsTab() {
                                       Sem registro
                                     </div>
                                   </div>
+
+                                  {/* Occurrences section */}
+                                  {item.occurrences && item.occurrences.length > 0 && (
+                                    <div className="mt-4 pt-4 border-t">
+                                      <h5 className="font-medium text-sm mb-3 text-destructive flex items-center gap-2">
+                                        <Badge variant="destructive">{item.occurrences.length}</Badge>
+                                        Ocorrências registradas
+                                      </h5>
+                                      <div className="space-y-2">
+                                        {item.occurrences.map((occ) => (
+                                          <div key={occ.id} className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                                            <div className="flex items-start justify-between gap-2 mb-1">
+                                              <span className="font-medium text-sm">{occ.occurrenceType}</span>
+                                              <span className="text-xs text-muted-foreground">{occ.date}</span>
+                                            </div>
+                                            {occ.observation && (
+                                              <p className="text-xs text-muted-foreground mt-1">{occ.observation}</p>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </CardContent>

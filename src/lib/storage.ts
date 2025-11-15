@@ -31,11 +31,21 @@ export interface Attendance {
   timestamp: Date;
 }
 
+export interface Occurrence {
+  id: string;
+  childId: string;
+  occurrenceType: string;
+  observation?: string;
+  date: string; // YYYY-MM-DD format
+  createdAt: Date;
+}
+
 const STORAGE_KEYS = {
   ROUTES: 'transport_routes',
   POINTS: 'transport_points',
   CHILDREN: 'transport_children',
-  ATTENDANCE: 'transport_attendance'
+  ATTENDANCE: 'transport_attendance',
+  OCCURRENCES: 'transport_occurrences'
 } as const;
 
 // Generic storage functions with date handling
@@ -57,6 +67,13 @@ export const getStorageData = <T>(key: string): T[] => {
       return parsed.map((item: any) => ({
         ...item,
         timestamp: new Date(item.timestamp)
+      }));
+    }
+    // Convert date strings back to Date objects for Occurrences
+    if (key === STORAGE_KEYS.OCCURRENCES) {
+      return parsed.map((item: any) => ({
+        ...item,
+        createdAt: new Date(item.createdAt)
       }));
     }
     return parsed;
@@ -395,12 +412,15 @@ export const markAttendance = (childId: string, present: boolean, routeId: strin
 export const getMonthlyReport = (year: number, month: number) => {
   const children = getChildren();
   const attendance = getAttendance();
+  const occurrences = getOccurrences();
   
   const monthStr = `${year}-${month.toString().padStart(2, '0')}`;
   const monthlyAttendance = attendance.filter(a => a.date.startsWith(monthStr));
+  const monthlyOccurrences = occurrences.filter(o => o.date.startsWith(monthStr));
   
   return children.map(child => {
     const childAttendance = monthlyAttendance.filter(a => a.childId === child.id);
+    const childOccurrences = monthlyOccurrences.filter(o => o.childId === child.id);
     const present = childAttendance.filter(a => a.present).length;
     const absent = childAttendance.filter(a => !a.present).length;
     
@@ -408,7 +428,58 @@ export const getMonthlyReport = (year: number, month: number) => {
       child,
       present,
       absent,
-      total: present + absent
+      total: present + absent,
+      occurrences: childOccurrences
     };
   });
+};
+
+// Occurrences management
+export const getOccurrences = (): Occurrence[] => getStorageData<Occurrence>(STORAGE_KEYS.OCCURRENCES);
+
+export const getOccurrencesByChild = (childId: string): Occurrence[] => {
+  return getOccurrences().filter(o => o.childId === childId);
+};
+
+export const addOccurrence = (occurrence: Omit<Occurrence, 'id' | 'createdAt'>): Occurrence => {
+  const newOccurrence: Occurrence = {
+    ...occurrence,
+    id: crypto.randomUUID(),
+    createdAt: new Date()
+  };
+  
+  const occurrences = getOccurrences();
+  occurrences.push(newOccurrence);
+  setStorageData(STORAGE_KEYS.OCCURRENCES, occurrences);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'insert',
+        table: 'occurrences',
+        data: newOccurrence,
+        localId: newOccurrence.id
+      });
+    });
+  }
+  
+  return newOccurrence;
+};
+
+export const deleteOccurrence = (id: string): void => {
+  const occurrences = getOccurrences().filter(o => o.id !== id);
+  setStorageData(STORAGE_KEYS.OCCURRENCES, occurrences);
+  
+  // Add to sync queue
+  if (typeof window !== 'undefined') {
+    import('./sync-service').then(({ addToSyncQueue }) => {
+      addToSyncQueue({
+        type: 'delete',
+        table: 'occurrences',
+        data: { id },
+        localId: id
+      });
+    });
+  }
 };
