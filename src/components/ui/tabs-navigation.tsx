@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { MapPin, Users, Calendar, Settings, Route, AlertCircle } from "lucide-react";
+import { MapPin, Users, Calendar, Settings, Route, AlertCircle, FileText } from "lucide-react";
 
 interface Tab {
   id: string;
@@ -11,9 +11,9 @@ const tabs: Tab[] = [
   { id: "routes", label: "Rotas", icon: Route },
   { id: "points", label: "Pontos", icon: MapPin },
   { id: "attendance", label: "Chamada", icon: Calendar },
-  { id: "occurrences", label: "Ocorrências", icon: Users },
-  { id: "reports", label: "Relatórios", icon: Users },
-  { id: "settings", label: "Alunos", icon: Settings },
+  { id: "settings", label: "Alunos", icon: Users },
+  { id: "occurrences", label: "Ocorrências", icon: AlertCircle },
+  { id: "reports", label: "Relatórios", icon: FileText },
 ];
 
 interface TabsNavigationProps {
