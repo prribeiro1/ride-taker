@@ -240,8 +240,7 @@ export function AttendanceTab() {
                       return (
                         <div
                           key={child.id}
-                          className="flex items-center justify-between p-3 rounded-lg"
-                          style={{ backgroundColor: '#a0f0f0' }}
+                          className="flex items-center justify-between p-3 rounded-lg bg-card border border-border"
                         >
                           <div className="flex-1">
                             <h4 className="font-medium">{child.name}</h4>

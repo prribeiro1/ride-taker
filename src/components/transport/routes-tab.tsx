@@ -138,7 +138,7 @@ export function RoutesTab() {
           routes.map((route) => (
             <Card key={route.id} glass className="group">
               <div className="p-3">
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-center mb-4">
                   <div className="flex items-start gap-3 flex-1">
                     <div className="p-3 bg-gradient-primary rounded-xl shadow-medium group-hover:scale-110 transition-transform">
                       <RouteIcon className="h-6 w-6 text-primary-foreground" />
