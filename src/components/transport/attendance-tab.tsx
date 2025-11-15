@@ -241,7 +241,7 @@ export function AttendanceTab() {
                         <div
                           key={child.id}
                           className="flex items-center justify-between p-3 rounded-lg"
-                          style={{ backgroundColor: '#11e7e7' }}
+                          style={{ backgroundColor: '#a0f0f0' }}
                         >
                           <div className="flex-1">
                             <h4 className="font-medium">{child.name}</h4>
