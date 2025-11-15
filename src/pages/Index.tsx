@@ -4,6 +4,7 @@ import { TabsNavigation } from "@/components/ui/tabs-navigation";
 import { RoutesTab } from "@/components/transport/routes-tab";
 import { PointsTab } from "@/components/transport/points-tab";
 import { AttendanceTab } from "@/components/transport/attendance-tab";
+import { OccurrencesTab } from "@/components/transport/occurrences-tab";
 import { ReportsTab } from "@/components/transport/reports-tab";
 import { SettingsTab } from "@/components/transport/settings-tab";
 import { PWAStatus } from "@/components/ui/pwa-status";
@@ -53,6 +54,8 @@ const Index = () => {
         return <PointsTab />;
       case "attendance":
         return <AttendanceTab />;
+      case "occurrences":
+        return <OccurrencesTab />;
       case "reports":
         return <ReportsTab />;
       case "settings":

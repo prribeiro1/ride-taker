@@ -1,11 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { Route, Point, Child, Attendance } from './storage';
+import type { Route, Point, Child, Attendance, Occurrence } from './storage';
 
 // Types for sync queue
 export interface SyncOperation {
   id: string;
   type: 'insert' | 'update' | 'delete';
-  table: 'routes' | 'points' | 'children' | 'attendance';
+  table: 'routes' | 'points' | 'children' | 'attendance' | 'occurrences';
   data: any;
   localId: string;
   timestamp: number;
@@ -302,6 +302,31 @@ export const downloadFromServer = async (userId: string): Promise<void> => {
       localStorage.setItem('transport_attendance', JSON.stringify(localAttendance));
     }
 
+    // Download occurrences
+    const { data: occurrences } = await supabase
+      .from('occurrences')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (occurrences) {
+      const existingOccurrences = JSON.parse(localStorage.getItem('transport_occurrences') || '[]');
+      const serverOccurrenceIds = new Set(occurrences.map(o => o.id));
+      const localOnlyOccurrences = existingOccurrences.filter((o: any) => !serverOccurrenceIds.has(o.id));
+      
+      const localOccurrences: Occurrence[] = [
+        ...occurrences.map(o => ({
+          id: o.id,
+          childId: o.child_id,
+          occurrenceType: o.occurrence_type,
+          observation: o.observation,
+          date: o.date,
+          createdAt: new Date(o.created_at)
+        })),
+        ...localOnlyOccurrences
+      ];
+      localStorage.setItem('transport_occurrences', JSON.stringify(localOccurrences));
+    }
+
     console.log('Data downloaded successfully');
   } catch (error) {
     console.error('Error downloading from server:', error);
@@ -377,6 +402,24 @@ export const uploadLocalDataToServer = async (userId: string): Promise<void> => 
           updated_at: new Date().toISOString()
         });
       if (error) console.error('Error uploading attendance:', error);
+    }
+
+    // Upload occurrences
+    const localOccurrences = JSON.parse(localStorage.getItem('transport_occurrences') || '[]');
+    for (const occurrence of localOccurrences) {
+      const { error } = await supabase
+        .from('occurrences')
+        .upsert({
+          id: occurrence.id,
+          user_id: userId,
+          child_id: occurrence.childId,
+          occurrence_type: occurrence.occurrenceType,
+          observation: occurrence.observation,
+          date: occurrence.date,
+          created_at: occurrence.createdAt,
+          updated_at: new Date().toISOString()
+        });
+      if (error) console.error('Error uploading occurrence:', error);
     }
 
     console.log('Local data uploaded successfully');
