@@ -23,7 +23,7 @@ interface TabsNavigationProps {
 
 export function TabsNavigation({ activeTab, onTabChange }: TabsNavigationProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass border-t border-white/20 z-50 shadow-large">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 shadow-large">
       <div className="flex justify-around items-center px-2 py-3 max-w-screen-xl mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
